@@ -3,6 +3,8 @@
     --defense-color: #66b3ff;
     --magic-color: #cc66ff;
     --special-color: #ffd966;
+    --poison-color: #66ff66;
+    --burn-color: #ff9966;
 }
 
 body {
@@ -21,6 +23,7 @@ body {
 .stage-display {
     font-size: 1.2em;
     color: #ff9900;
+    margin-top: 10px;
 }
 
 .game-container {
@@ -37,6 +40,7 @@ body {
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: transform 0.3s;
 }
 
 .status-bar {
@@ -51,12 +55,15 @@ body {
     padding: 8px 15px;
     border-radius: 20px;
     color: #ff6666;
+    min-width: 80px;
 }
 
 .energy, .armor {
     padding: 5px 10px;
     border-radius: 10px;
     background: #262626;
+    min-width: 40px;
+    text-align: center;
 }
 
 .hand {
@@ -80,6 +87,11 @@ body {
     overflow: hidden;
 }
 
+.card.attack { border: 2px solid var(--attack-color); }
+.card.defense { border: 2px solid var(--defense-color); }
+.card.magic { border: 2px solid var(--magic-color); }
+.card.special { border: 2px solid var(--special-color); }
+
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -92,6 +104,7 @@ body {
     background: #4d4d4d;
     padding: 3px 8px;
     border-radius: 15px;
+    font-weight: bold;
 }
 
 .card-type {
@@ -116,12 +129,14 @@ body {
     padding: 10px;
     background: #0d0d0d;
     border-radius: 5px;
+    font-size: 0.9em;
 }
 
 .status-effects {
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
+    min-height: 25px;
 }
 
 .status-effect {
@@ -129,4 +144,32 @@ body {
     border-radius: 5px;
     font-size: 0.8em;
     background: #333;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+button {
+    background: #ff9900;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
 }
