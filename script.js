@@ -9,7 +9,8 @@ let gameState = {
         deck: [],
         hand: [],
         discardPile: [],
-        statusEffects: []
+        statusEffects: [],
+        maxHandSize: 5
     },
     currentEnemy: null,
     isPlayerTurn: true,
@@ -23,7 +24,28 @@ const ENEMIES = [
     { name: "Dragon", hp: 120, attack: 15, special: 'applyBurn' }
 ];
 
-const ALL_CARDS = [/* List of 100 card names */];
+const ALL_CARDS = [
+    'Slash', 'Heavy Strike', 'Piercing Shot', 'Poison Dagger', 'Flaming Sword',
+    'Backstab', 'Double Slash', 'Thunder Strike', 'Vampiric Bite', 'Explosive Arrow',
+    'Blade Dance', 'Bloodletting Slash', 'Crippling Blow', 'Storm Blade', 'Toxic Shot',
+    'Block', 'Reinforced Shield', 'Counter Stance', 'Dodge', 'Fortify',
+    'Iron Wall', 'Reflective Barrier', 'Adaptive Shield', 'Sacred Blessing', 'Aegis',
+    'Adrenaline Rush', 'Weaken', 'Enrage', 'Focus', 'Curse of Fatigue',
+    'Bloodlust', 'Rage', 'Slow Time', 'Battle Trance', 'Power Surge',
+    'Fireball', 'Ice Spike', 'Chain Lightning', 'Dark Ritual', 'Tornado',
+    'Summon Golem', 'Meteor Strike', 'Mind Control', 'Time Warp', 'Necromancy',
+    'Gamble', 'Echo', 'Sacrifice', 'Alchemist\'s Brew', 'Steal Essence',
+    'Energy Burst', 'Divine Light', 'Explosive Trap', 'Cursed Pact', 'Phantom Step',
+    'Dagger Throw', 'Shadow Strike', 'Last Stand', 'Mirror Image', 'Divine Judgment',
+    'Soul Drain', 'Lightning Reflex', 'Ethereal Form', 'Blade Storm', 'Blood Pact',
+    'Fatal Blow', 'Shield Bash', 'Evasive Maneuver', 'Reckless Charge', 'Frost Nova',
+    'Dark Contract', 'Holy Smite', 'Vortex', 'Black Hole', 'Overload',
+    'Arcane Blast', 'Lifesteal Slash', 'Whirlwind', 'Tainted Blood', 'Crushing Blow',
+    'Curse of Weakness', 'Healing Surge', 'Shadow Veil', 'Arcane Echo', 'Meteor Rain',
+    'Unstable Potion', 'Rewind Time', 'Corrupt Ritual', 'Holy Shield', 'Sudden Death',
+    'Mind Blast', 'Blood Moon', 'Echo Strike', 'Berserker Mode', 'Soul Link',
+    'Arcane Shield', 'Death Mark', 'Lightning Storm', 'Spirit Drain', 'Final Stand'
+];
 
 // Initialize Game
 function initGame() {
@@ -46,7 +68,37 @@ const CARD_EFFECTS = {
         type: 'attack',
         effect: (target) => dealDamage(12, target)
     },
-    // ... Add all other cards
+    'Piercing Shot': {
+        cost: 2,
+        type: 'attack',
+        effect: (target) => pierceDamage(8, target)
+    },
+    'Poison Dagger': {
+        cost: 1,
+        type: 'attack',
+        effect: (target) => { dealDamage(4, target); applyStatus(target, { type: 'poison', value: 2, duration: 3 }); }
+    },
+    'Flaming Sword': {
+        cost: 2,
+        type: 'attack',
+        effect: (target) => { dealDamage(8, target); applyStatus(target, { type: 'burn', value: 3, duration: 2 }); }
+    },
+    // Defense Cards
+    'Block': {
+        cost: 1,
+        type: 'defense',
+        effect: (target) => addArmor(6, target)
+    },
+    'Reinforced Shield': {
+        cost: 2,
+        type: 'defense',
+        effect: (target) => addArmor(12, target)
+    },
+    'Dodge': {
+        cost: 1,
+        type: 'defense',
+        effect: (target) => applyStatus(target, { type: 'dodge', duration: 1 })
+    }
 };
 
 // Battle System
@@ -67,11 +119,22 @@ function dealDamage(amount, target) {
     return finalDamage;
 }
 
+function pierceDamage(amount, target) {
+    target.hp = Math.max(target.hp - amount, 0);
+    addLog(`${target === gameState.player ? 'Player' : 'Enemy'} took ${amount} piercing damage!`);
+    checkDeath();
+    return amount;
+}
+
+function addArmor(amount, target) {
+    target.armor += amount;
+    addLog(`${target === gameState.player ? 'Player' : 'Enemy'} gained ${amount} armor!`);
+}
+
 function applyStatus(target, status) {
     target.statusEffects.push(status);
     addLog(`${status.type} applied!`);
 }
-
 // Turn System
 function startPlayerTurn() {
     gameState.isPlayerTurn = true;
@@ -114,9 +177,24 @@ function startEnemyTurn() {
 }
 
 // Deck Management
+function initializeDeck() {
+    gameState.player.deck = [
+        'Slash', 'Slash', 'Block', 'Dodge',
+        'Adrenaline Rush', 'Poison Dagger', 'Fireball'
+    ];
+    shuffleDeck();
+}
+
+function shuffleDeck() {
+    for (let i = gameState.player.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [gameState.player.deck[i], gameState.player.deck[j]] = [gameState.player.deck[j], gameState.player.deck[i]];
+    }
+}
+
 function drawCards(amount) {
     for(let i = 0; i < amount; i++) {
-        if(gameState.player.hand.length >= 5) break;
+        if(gameState.player.hand.length >= gameState.player.maxHandSize) break;
         if(gameState.player.deck.length === 0) shuffleDiscardPile();
         gameState.player.hand.push(gameState.player.deck.pop());
     }
@@ -127,35 +205,11 @@ function discardHand() {
     gameState.player.hand = [];
 }
 
-// Stage System
-function advanceStage() {
-    gameState.stage++;
-    showCardReward();
-    spawnEnemy();
-    updateUI();
+function shuffleDiscardPile() {
+    gameState.player.deck = [...gameState.player.discardPile];
+    gameState.player.discardPile = [];
+    shuffleDeck();
 }
-
-function showCardReward() {
-    const rewards = getRandomCards(3);
-    const modal = document.getElementById('reward-modal');
-    const cardsDiv = document.getElementById('reward-cards');
-    
-    cardsDiv.innerHTML = '';
-    rewards.forEach(card => {
-        const cardElement = document.createElement('div');
-        cardElement.className = 'card';
-        cardElement.textContent = card;
-        cardElement.onclick = () => {
-            gameState.player.deck.push(card);
-            modal.style.display = 'none';
-            startPlayerTurn();
-        };
-        cardsDiv.appendChild(cardElement);
-    });
-    
-    modal.style.display = 'flex';
-}
-
 // UI Functions
 function updateUI() {
     // Update player stats
@@ -172,13 +226,23 @@ function updateUI() {
     handDiv.innerHTML = '';
     
     gameState.player.hand.forEach(card => {
+        const cardData = CARD_EFFECTS[card];
+        if(!cardData) return; // Skip kartu yang tidak terdefinisi
+        
         const cardElement = document.createElement('div');
-        cardElement.className = `card ${CARD_EFFECTS[card].type}`;
+        cardElement.className = `card ${cardData.type}`;
         cardElement.innerHTML = `
-            <div class="card-cost">${CARD_EFFECTS[card].cost}</div>
+            <div class="card-cost">${cardData.cost}</div>
             <h3>${card}</h3>
+            <div class="card-type">${cardData.type}</div>
         `;
-        cardElement.onclick = () => playCard(card);
+        
+        cardElement.onclick = () => {
+            if(gameState.isPlayerTurn && gameState.player.energy >= cardData.cost) {
+                playCard(card);
+            }
+        };
+        
         handDiv.appendChild(cardElement);
     });
 }
