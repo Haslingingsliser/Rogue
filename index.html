@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dungeon Deck</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>DUNGEON DECK</h1>
+        <div class="stage-display">Stage: <span id="stage">1</span></div>
+    </div>
+    
+    <div class="game-container">
+        <div class="character player">
+            <div class="status-bar">
+                <div class="hp-bar"><span id="player-hp">100</span>/100</div>
+                <div class="energy">⚡<span id="player-energy">3</span></div>
+                <div class="armor">🛡<span id="player-armor">0</span></div>
+            </div>
+            <div class="status-effects" id="player-status"></div>
+        </div>
+
+        <div class="character enemy">
+            <div class="status-bar">
+                <div class="hp-bar"><span id="enemy-hp">50</span>/50</div>
+                <div class="armor">🛡<span id="enemy-armor">0</span></div>
+            </div>
+            <div class="status-effects" id="enemy-status"></div>
+        </div>
+    </div>
+
+    <div class="hand" id="hand"></div>
+    
+    <div class="log-container">
+        <div class="log" id="log"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
